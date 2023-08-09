@@ -4,6 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import zad1.model.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,4 +47,56 @@ public class ShapeServiceTest {
         assertEquals(r2, ShapeService.findShapeWithLargestPerimeterOfType(shapes, Rectangle.class));
     }
 
+    @Test
+    public void shouldExportCorrectJsonFormat() {
+        List<Shape> list = new ArrayList<>(Arrays.asList(c1, sq1));
+        String testJsonFormat = "test_jsonformat.json";
+        String jsonFormat =  "";
+        String expectedFormat = "[{\"type\":\"Circle\",\"radius\":5.0},{\"type\":\"Square\",\"side\":22.0}]";
+        ShapeService.exportToJSON(list, testJsonFormat);
+        try(BufferedReader reader = new BufferedReader(new FileReader(testJsonFormat))) {
+            jsonFormat = reader.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        assertEquals(expectedFormat, jsonFormat);
+
+        File testFile = new File(testJsonFormat);
+        if (testFile.exists()) {
+            testFile.delete();
+        }
+    }
+
+    @Test
+    public void testExportAndImportJSON() {
+        String testFilePath = "test_json.json";
+
+        ShapeService.exportToJSON(shapes, testFilePath);
+
+        List<Shape> importedShapes = ShapeService.importFromJSON(testFilePath);
+
+        assertEquals(shapes.size(), importedShapes.size());
+
+        for (int i = 0; i < shapes.size(); i++) {
+            Shape originalShape = shapes.get(i);
+            Shape importedShape = importedShapes.get(i);
+
+            assertEquals(originalShape.getClass(), importedShape.getClass());
+
+            if (originalShape instanceof Circle) {
+                assertEquals(((Circle) originalShape).getRadius(), ((Circle) importedShape).getRadius(), 0.0001);
+            } else if (originalShape instanceof Rectangle) {
+                assertEquals(((Rectangle) originalShape).getWidth(), ((Rectangle) importedShape).getWidth(), 0.0001);
+                assertEquals(((Rectangle) originalShape).getLength(), ((Rectangle) importedShape).getLength(), 0.0001);
+            } else if (originalShape instanceof Square) {
+                assertEquals(((Square) originalShape).getSide(), ((Square) importedShape).getSide(), 0.0001);
+            }
+        }
+
+
+        File testFile = new File(testFilePath);
+        if (testFile.exists()) {
+            testFile.delete();
+        }
+    }
 }

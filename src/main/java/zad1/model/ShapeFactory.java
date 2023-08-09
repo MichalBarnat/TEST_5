@@ -25,7 +25,8 @@ public class ShapeFactory {
     }
 
     public Rectangle createRectangle(int length, int width) {
-        String key = "Rectangle" + length + width;
+        //POPRAWIONE:
+        String key = "Rectangle" + "l"+ length + "w" + width;
         if (rectangleCache.containsKey(key)) {
             return rectangleCache.get(key);
         } else {
