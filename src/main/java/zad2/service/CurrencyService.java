@@ -9,14 +9,16 @@ import java.net.http.HttpResponse;
 
 public class CurrencyService {
 
-    public static double exchange(String CurrencyFrom, String CurrencyTo, double amount) {
+    private HttpClient client = HttpClient.newHttpClient();
+
+    public double exchange(String CurrencyFrom, String CurrencyTo, double amount) {
         String baseUrl = "https://api.apilayer.com/currency_data/";
         String apiKey = "TMrs25g3tBZe2qvKJNgMqcQOMNAQe1Md";
         String urlStr = baseUrl + "convert?amount=" + amount + "&from=" + CurrencyFrom + "&to=" + CurrencyTo + "&apikey=" + apiKey;
         //System.out.println(urlStr);
 
         //http request
-        HttpClient client = HttpClient.newHttpClient();
+
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(urlStr)).build();
         String responseBody = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
@@ -27,7 +29,7 @@ public class CurrencyService {
         return convertedValue;
     }
 
-    public static double parseJSON(String responseBody) {
+    public double parseJSON(String responseBody) {
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(responseBody, JsonObject.class);
 
@@ -38,4 +40,11 @@ public class CurrencyService {
         }
     }
 
+    public HttpClient getClient() {
+        return client;
+    }
+
+    public void setClient(HttpClient client) {
+        this.client = client;
+    }
 }
