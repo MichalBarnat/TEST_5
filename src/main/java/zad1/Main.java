@@ -30,6 +30,7 @@ public class Main {
 
         List<Shape> shapesFromJson = ShapeService.importFromJSON("src/main/java/zad1/export.json");
 
+        System.out.println("Shapes from JSON:");
         for (Shape shape : shapesFromJson) {
             System.out.println(shape);
         }

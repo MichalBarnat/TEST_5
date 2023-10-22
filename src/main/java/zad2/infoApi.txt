@@ -1,0 +1,3 @@
+GET /CONVERT
+required: amount(String), from(String), to(String)
+optional: date(String) format YYYY-MM-DD

@@ -1,50 +1,43 @@
 package zad2.service;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import zad2.model.OurClient;
+
+@RequiredArgsConstructor
 public class CurrencyService {
 
-    private HttpClient client = HttpClient.newHttpClient();
+    private final OurClient client;
 
-    public double exchange(String CurrencyFrom, String CurrencyTo, double amount) {
-        String baseUrl = "https://api.apilayer.com/currency_data/";
-        String apiKey = "TMrs25g3tBZe2qvKJNgMqcQOMNAQe1Md";
-        String urlStr = baseUrl + "convert?amount=" + amount + "&from=" + CurrencyFrom + "&to=" + CurrencyTo + "&apikey=" + apiKey;
-        //System.out.println(urlStr);
+    public double exchange(double amount, String from, String to) {
+        String json = client.getJson(amount, from, to);
 
-        //http request
-
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(urlStr)).build();
-        String responseBody = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .join();
-
-        double convertedValue = parseJSON(responseBody);
-
-        return convertedValue;
+        return parseJson(json);
     }
 
-    public double parseJSON(String responseBody) {
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(responseBody, JsonObject.class);
+    public double exchange(double amount, String from, String to, String date) {
+        String json = client.getJson(amount, from, to, date);
 
-        if (jsonObject != null && jsonObject.has("result")) {
-            return jsonObject.get("result").getAsDouble();
-        } else {
-            return 0.0;
+        return parseJson(json);
+    }
+
+    private double parseJson(String json) {
+        double result = 0.0;
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode jsonNode = objectMapper.readTree(json);
+            result = jsonNode.get("result").asDouble();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
+
+        return result;
+
     }
 
-    public HttpClient getClient() {
-        return client;
-    }
 
-    public void setClient(HttpClient client) {
-        this.client = client;
-    }
 }

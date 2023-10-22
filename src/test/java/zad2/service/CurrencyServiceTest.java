@@ -2,57 +2,89 @@ package zad2.service;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.concurrent.CompletableFuture;
+import zad2.model.OurClient;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 public class CurrencyServiceTest {
 
+    @Mock
+    private OurClient client;
+
+    @InjectMocks
     private CurrencyService currencyService;
-    @Mock
-    private HttpClient httpClientMock;
-    @Mock
-    private HttpResponse<String> httpResponseMock;
 
     @Before
     public void init() {
         MockitoAnnotations.openMocks(this);
-        currencyService = new CurrencyService();
-        currencyService.setClient(httpClientMock);
     }
 
     @Test
-    public void testExchange() {
-        String responseBody = "{\"result\": 404.9}";
-        double expectedConvertedValue = 404.9;
+    public void shouldReturnCorrectValueWhenExchanging() {
+        double amount = 100.0;
+        String from = "EUR";
+        String to = "PLN";
+        double expectedAmount = 446.3795;
 
-        Mockito.when(httpResponseMock.body()).thenReturn(responseBody);
-        Mockito.when(httpClientMock.sendAsync(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
-                .thenReturn(CompletableFuture.completedFuture(httpResponseMock));
+        when(client.getJson(amount, from, to)).thenReturn(jsonFromApi());
 
+        double ourResult = currencyService.exchange(amount, from, to);
 
-        double actualConvertedValue = currencyService.exchange("USD", "PLN", 100.0);
-
-        assertEquals(actualConvertedValue, expectedConvertedValue, 0.1);
-
+        assertEquals(expectedAmount, ourResult, 0.001);
     }
 
     @Test
-    public void shouldReturnCorrectValueFromJson() {
-        String responseBody = "{\"result\": 500.0}";
-        double expectedValue = 500.0;
-        double actualValue = currencyService.parseJSON(responseBody);
+    public void shouldReturnCorrectValueWhenAskForHistoricalData() {
+        double amount = 100.0;
+        String from = "EUR";
+        String to = "PLN";
+        String date = "2000-01-01";
+        double expectedAmount = 416.8164;
 
-        assertEquals(actualValue, expectedValue, 0.1);
+        when(client.getJson(amount, from, to, date)).thenReturn(jsonHistoricalFromApi());
+
+        double ourResult = currencyService.exchange(amount, from, to, date);
+
+        assertEquals(expectedAmount, ourResult, 0.001);
     }
 
+    private String jsonFromApi() {
+        return "{\n" +
+                "    \"success\": true,\n" +
+                "    \"query\": {\n" +
+                "        \"from\": \"EUR\",\n" +
+                "        \"to\": \"PLN\",\n" +
+                "        \"amount\": 100\n" +
+                "    },\n" +
+                "    \"info\": {\n" +
+                "        \"timestamp\": 1697980023,\n" +
+                "        \"rate\": 4.463795\n" +
+                "    },\n" +
+                "    \"date\": \"2023-10-22\",\n" +
+                "    \"result\": 446.3795\n" +
+                "}";
+    }
+
+    private String jsonHistoricalFromApi() {
+        return "{\n" +
+                "    \"success\": true,\n" +
+                "    \"query\": {\n" +
+                "        \"from\": \"EUR\",\n" +
+                "        \"to\": \"PLN\",\n" +
+                "        \"amount\": 100\n" +
+                "    },\n" +
+                "    \"info\": {\n" +
+                "        \"timestamp\": 946771199,\n" +
+                "        \"rate\": 4.168164\n" +
+                "    },\n" +
+                "    \"date\": \"2000-01-01\",\n" +
+                "    \"historical\": true,\n" +
+                "    \"result\": 416.8164\n" +
+                "}";
+    }
 
 }
